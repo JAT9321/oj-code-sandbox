@@ -17,5 +17,7 @@ public class ExceuteMessage {
     private Long time;
 
 
+    private Long memory;
+
 
 }

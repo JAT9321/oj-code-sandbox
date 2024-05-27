@@ -2,9 +2,12 @@ package com.zgt.ojcodesandbox.utils;
 
 import cn.hutool.core.util.StrUtil;
 import com.zgt.ojcodesandbox.model.ExceuteMessage;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 执行cmd命令后的 信息处理
@@ -36,37 +39,36 @@ public class ProcessUtils {
                 System.out.println(opName + "成功");
                 // 获得执行的正常输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
-                StringBuilder compileOutputStringBuilder = new StringBuilder();
+                List<String> outputList = new ArrayList<String>();
                 // 逐行读取
                 String compileOutputLine;
                 while ((compileOutputLine = bufferedReader.readLine()) != null) {
-                    compileOutputStringBuilder.append(compileOutputLine);
+                    outputList.add(compileOutputLine);
                 }
-                exceuteMessage.setMessage(compileOutputStringBuilder.toString());
+                exceuteMessage.setMessage(StringUtils.join(outputList, "\n"));
 //                System.out.println(compileOutputStringBuilder.toString());
             } else {
                 //异常退出
                 System.out.println(opName + "失败，错误码：" + exitValue);
                 // 获得执行的正常输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
-                StringBuilder compileOutputStringBuilder = new StringBuilder();
+                List<String> outputList = new ArrayList<String>();
                 // 逐行读取
                 String compileOutputLine;
                 while ((compileOutputLine = bufferedReader.readLine()) != null) {
-                    compileOutputStringBuilder.append(compileOutputLine);
+                    outputList.add(compileOutputLine);
                 }
-                exceuteMessage.setMessage(compileOutputStringBuilder.toString());
+                exceuteMessage.setMessage(StringUtils.join(outputList, "\n"));
 //                System.out.println(compileOutputStringBuilder.toString());
                 // 获取执行过程中的错误输出
                 BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(runProcess.getErrorStream()));
-                StringBuilder errorCompileOutputStringBuilder = new StringBuilder();
+                List<String>  errorCompileOutputList = new ArrayList<String>();
                 // 逐行读取
                 String errorCompileOutputLine;
                 while ((errorCompileOutputLine = errorBufferedReader.readLine()) != null) {
-                    errorCompileOutputStringBuilder.append(errorCompileOutputLine);
+                    errorCompileOutputList.add(errorCompileOutputLine);
                 }
-                exceuteMessage.setErrorMessage(errorCompileOutputStringBuilder.toString());
-//                System.out.println(errorCompileOutputStringBuilder.toString());
+                exceuteMessage.setErrorMessage(StringUtils.join(errorCompileOutputList, "\n"));
             }
         } catch (InterruptedException | IOException e) {
 //            throw new RuntimeException(e);
