@@ -26,7 +26,7 @@ public class ProcessUtils {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            //等待程序执行完成，得到返回码
+            // 等待程序执行完成，得到返回码
             int exitValue = runProcess.waitFor();
 
             stopWatch.stop();
@@ -34,7 +34,7 @@ public class ProcessUtils {
 
             exceuteMessage.setTime(taskTimeMillis);
             exceuteMessage.setExitValue(exitValue);
-            //正常退出
+            // 正常退出
             if (exitValue == 0) {
                 System.out.println(opName + "成功");
                 // 获得执行的正常输出
@@ -48,7 +48,7 @@ public class ProcessUtils {
                 exceuteMessage.setMessage(StringUtils.join(outputList, "\n"));
 //                System.out.println(compileOutputStringBuilder.toString());
             } else {
-                //异常退出
+                // 异常退出
                 System.out.println(opName + "失败，错误码：" + exitValue);
                 // 获得执行的正常输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
@@ -62,7 +62,7 @@ public class ProcessUtils {
 //                System.out.println(compileOutputStringBuilder.toString());
                 // 获取执行过程中的错误输出
                 BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(runProcess.getErrorStream()));
-                List<String>  errorCompileOutputList = new ArrayList<String>();
+                List<String> errorCompileOutputList = new ArrayList<String>();
                 // 逐行读取
                 String errorCompileOutputLine;
                 while ((errorCompileOutputLine = errorBufferedReader.readLine()) != null) {
@@ -90,9 +90,9 @@ public class ProcessUtils {
             // 向控制台输入程序
             OutputStream outputStream = runProcess.getOutputStream();
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
-            String[] s = args.split(" ");
-            String join = StrUtil.join("\n", s) + "\n";
-            outputStreamWriter.write(join);
+            // String[] s = args.split(" ");
+            // String join = StrUtil.join("\n", s) + "\n";
+            outputStreamWriter.write(args);
             // 相当于按了回车，执行输入的发送
             outputStreamWriter.flush();
 
@@ -115,6 +115,71 @@ public class ProcessUtils {
             runProcess.destroy();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        return exceuteMessage;
+    }
+
+
+    public static ExceuteMessage runInteractProcessAndGetMessage2(Process runProcess, String args) {
+        ExceuteMessage exceuteMessage = new ExceuteMessage();
+        try {
+            // 向控制台输入程序
+            OutputStream outputStream = runProcess.getOutputStream();
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
+            // 无语，JSONUtil工具会把\n变\\n，失去转移字符的意义，这里换回去，先这样吧
+            outputStreamWriter.write(args.replace("\\n", "\n"));
+            // 相当于按了回车，执行输入的发送
+            outputStreamWriter.flush();
+
+            // 记得资源的释放，否则会卡死
+            outputStreamWriter.close();
+            outputStream.close();
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+            int exitValue = runProcess.waitFor();
+            stopWatch.stop();
+            exceuteMessage.setTime(stopWatch.getLastTaskTimeMillis());
+            exceuteMessage.setExitValue(exitValue);
+
+            if (exitValue == 0) {
+                System.out.println("执行成功");
+                // 获得执行的正常输出
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
+                List<String> outputList = new ArrayList<String>();
+                // 逐行读取
+                String compileOutputLine;
+                while ((compileOutputLine = bufferedReader.readLine()) != null) {
+                    outputList.add(compileOutputLine);
+                }
+                exceuteMessage.setMessage(StringUtils.join(outputList, "\n"));
+                // System.out.println(exceuteMessage);
+            } else {
+                // 异常退出
+                // 获得执行的正常输出
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
+                List<String> outputList = new ArrayList<String>();
+                // 逐行读取
+                String compileOutputLine;
+                while ((compileOutputLine = bufferedReader.readLine()) != null) {
+                    outputList.add(compileOutputLine);
+                }
+                exceuteMessage.setMessage(StringUtils.join(outputList, "\n"));
+                // System.out.println(exceuteMessage.getMessage());
+                // 获取执行过程中的错误输出
+                BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(runProcess.getErrorStream()));
+                List<String> errorCompileOutputList = new ArrayList<String>();
+                // 逐行读取
+                String errorCompileOutputLine;
+                while ((errorCompileOutputLine = errorBufferedReader.readLine()) != null) {
+                    errorCompileOutputList.add(errorCompileOutputLine);
+                }
+                exceuteMessage.setErrorMessage(StringUtils.join(errorCompileOutputList, "\n"));
+                // System.out.println(exceuteMessage.getErrorMessage());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            runProcess.destroy();
         }
         return exceuteMessage;
     }
