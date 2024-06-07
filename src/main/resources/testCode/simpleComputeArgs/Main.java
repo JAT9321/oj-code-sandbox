@@ -1,8 +1,18 @@
+
+
 class Main {
     public static void main(String[] args) {
-//        String a;
-        int a = Integer.valueOf(args[0]);
-        int b = Integer.valueOf(args[1]);
-        System.out.println("结果：" + (a + b));
+
+        System.out.println(3);
+
+
+        // Scanner scanner = new Scanner(System.in);
+        // int n = scanner.nextInt();
+        // scanner.nextLine();
+        // int sum = 0;
+        // for (int i = 0; i < n; i++) {
+        //     sum += scanner.nextInt();
+        // }
+        // System.out.println(sum);
     }
 }

@@ -135,7 +135,7 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
             // 超时判定
             final boolean[] timedOut = {true};
 
-            // 命令id，执行命令穿这个id，
+            // 命令id，执行命令传这个id，
             String execId = execCreateCmdResponse.getId();
             // 执行回调
             ExecStartResultCallback execStartResultCallback = new ExecStartResultCallback() {
@@ -160,7 +160,6 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
 
                 }
             };
-
 
             // 内存占用
             final long[] maxMemory = {0L};
