@@ -41,6 +41,8 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
     private static final String GLOBAL_CODE_DIR_NAME = "tmpCode";
     // 固定java代码的类名
     private static final String GLOBAL_JAVA_CLASS_NAME = "Main.java";
+    // 输入文件名称
+    private static final String GLOBAL_INPUT_ARGS_NAME = "input.txt";
     // 超时时间
     private static final long TIME_OUT = 5000L;
     // 是否拉取过镜像了
@@ -83,6 +85,8 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
         String userCodeParentPath = globalCodePathName + File.separator + randomName;
         String userCodePath = userCodeParentPath + File.separator + GLOBAL_JAVA_CLASS_NAME;
         File userCodeFile = FileUtil.writeString(code, userCodePath, StandardCharsets.UTF_8);
+        String testInputFilePath = userCodeParentPath + File.separator + GLOBAL_INPUT_ARGS_NAME;
+
 
         // 编译代码 得到class文件
         String compileCmd = String.format("javac -encoding utf-8 %s", userCodeFile.getAbsolutePath());
@@ -98,57 +102,60 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
         // 获取默认的 Docker Client
         DockerClient dockerClient = DockerClientBuilder.getInstance().build();
 
-        String image = "openjdk:8-alpine";
-        // 拉取镜像
-        if (FIRST_INIT) {
-            PullImageCmd pullImageCmd = dockerClient.pullImageCmd(image);
-            PullImageResultCallback pullImageResultCallback = new PullImageResultCallback() {
-                @Override
-                public void onNext(PullResponseItem item) {
-                    System.out.println("下载镜像：" + item.getStatus());
-                    super.onNext(item);
-                }
-            };
-            try {
-                pullImageCmd
-                        .exec(pullImageResultCallback)
-                        .awaitCompletion();
-                FIRST_INIT = false;
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            System.out.println("下载完成");
-        }
+        // String image = "openjdk:8-alpine";
+        // // 拉取镜像
+        // if (FIRST_INIT) {
+        //     PullImageCmd pullImageCmd = dockerClient.pullImageCmd(image);
+        //     PullImageResultCallback pullImageResultCallback = new PullImageResultCallback() {
+        //         @Override
+        //         public void onNext(PullResponseItem item) {
+        //             System.out.println("下载镜像：" + item.getStatus());
+        //             super.onNext(item);
+        //         }
+        //     };
+        //     try {
+        //         pullImageCmd
+        //                 .exec(pullImageResultCallback)
+        //                 .awaitCompletion();
+        //         FIRST_INIT = false;
+        //     } catch (InterruptedException e) {
+        //         throw new RuntimeException(e);
+        //     }
+        //     System.out.println("下载完成");
+        // }
 
-        // 创建容器
-        CreateContainerCmd containerCmd = dockerClient.createContainerCmd(image);
-        // 镜像运行时的相关参数指定，卷映射，内存指定等
-        HostConfig hostConfig = new HostConfig();
-        // 卷映射，挂载
-        hostConfig.setBinds(new Bind(globalCodePathName, new Volume("/app")));
-        // 内存限制
-        hostConfig.withMemory(100 * 1000 * 1000L);
-        // cpu限制
-        hostConfig.withCpuCount(1L);
-        // 安全管理配置
-        // hostConfig.withSecurityOpts(Arrays.asList("seccomp 安全管理配置字符串"));
+        // // 创建容器
+        // CreateContainerCmd containerCmd = dockerClient.createContainerCmd(image);
+        // // 镜像运行时的相关参数指定，卷映射，内存指定等
+        // HostConfig hostConfig = new HostConfig();
+        // // 卷映射，挂载
+        // hostConfig.setBinds(new Bind(globalCodePathName, new Volume("/app")));
+        // // 内存限制
+        // hostConfig.withMemory(100 * 1000 * 1000L);
+        // // cpu限制
+        // hostConfig.withCpuCount(1L);
+        // // 安全管理配置
+        // // hostConfig.withSecurityOpts(Arrays.asList("seccomp 安全管理配置字符串"));
+        //
+        // CreateContainerResponse createContainerResponse = containerCmd
+        //         .withHostConfig(hostConfig)
+        //         // 关闭容器的网络 安全性
+        //         // .withNetworkDisabled(true)
+        //         // 限制用户不能在root目录下进行写文件
+        //         .withReadonlyRootfs(true)
+        //         // 容器和外部的输入输出打开
+        //         .withAttachStdin(true).withAttachStdout(true).withAttachStderr(true).withTty(true)
+        //         // 执行
+        //         .exec();
+        // System.out.println(createContainerResponse);
+        // String containerId = createContainerResponse.getId();
 
-        CreateContainerResponse createContainerResponse = containerCmd
-                .withHostConfig(hostConfig)
-                // 关闭容器的网络 安全性
-                // .withNetworkDisabled(true)
-                // 限制用户不能在root目录下进行写文件
-                .withReadonlyRootfs(true)
-                // 容器和外部的输入输出打开
-                .withAttachStdin(true).withAttachStdout(true).withAttachStderr(true).withTty(true)
-                // 执行
-                .exec();
-        System.out.println(createContainerResponse);
-        String containerId = createContainerResponse.getId();
         // String containerId = "9268eeb2b0e15bca7e337dda8685652d6a9eb936f880340781befa1a1a7f644a";
+        String containerId = "8a01c44ae767bc86420a66a5c24647fa1639963b8d68481749f820b3aa673810";
+
         // 启动容器
-        dockerClient.startContainerCmd(containerId).exec();
-        System.out.println("容器启动完成");
+        // dockerClient.startContainerCmd(containerId).exec();
+        // System.out.println("容器启动完成");
 
 
         // 执行命令 => docker exec container_name java -cp /app Main 1 3
@@ -161,21 +168,25 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
         for (String inputArgs : inputList) {
 
             // 输入命令
-            String[] inputArgsArray = inputArgs.split(" ");
-            String[] cmdArray = ArrayUtil.append(new String[]{"java", "-cp", "/app/" + randomName, "Main"}, inputArgsArray);
-
-            // 创建命令
+            // docker exec -it 8a0 /bin/sh /app/test/run.sh
+            String[] cmdArray = new String[]{"/bin/sh", "/app/run.sh", randomName};
+            // 创建输入文件 覆盖模式
+            File testInputFile = FileUtil.writeString(inputArgs, testInputFilePath, StandardCharsets.UTF_8);
+            System.out.println("测试用例路径：" + testInputFile.getAbsolutePath());
+            // 创建命令 java命令
             ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
                     .withCmd(cmdArray)
-                    .withAttachStdin(true).withAttachStdout(true).withAttachStderr(true)
+                    .withAttachStdin(true)
+                    .withAttachStdout(true)
+                    .withAttachStderr(true)
                     .exec();
             System.out.println("创建执行命令：" + execCreateCmdResponse);
 
             // 直接结果返回
             ExceuteMessage exceuteMessage = new ExceuteMessage();
             // java的执行要求，在匿名内部类或者lambna表达式中的外部变量的引用不能变，所以设置为数组形式
-            final String[] message = {null};
-            final String[] errorMessage = {null};
+            final String[] message = {""};
+            final String[] errorMessage = {""};
             final Long[] time = {0L};
 
             // 超时判定
@@ -193,8 +204,10 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
                         errorMessage[0] = new String(frame.getPayload());
                         System.out.println("输出错误结果：" + errorMessage[0]);
                     } else {
-                        message[0] = new String(frame.getPayload());
-                        System.out.println("输出结果：" + message[0]);
+                        byte[] payload = frame.getPayload();
+                        // System.out.println(new String(payload));
+                        message[0] += new String(payload);
+                        // System.out.println("输出结果：" + message[0]);
                     }
                     super.onNext(frame);
                 }
@@ -218,7 +231,9 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
                     Long usage = statistics.getMemoryStats().getUsage();
                     maxMemory[0] = Math.max(usage == null ? 0 : usage, maxMemory[0]);
                     System.out.println("内存占用：" + maxMemory[0]);
-                    if (isOver[0]) return;
+                    if (isOver[0]) {
+                        Thread.currentThread().stop();
+                    }
                 }
 
                 @Override
@@ -238,13 +253,10 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
                 }
             };
             statsCmd.exec(statisticsResultCallback);
-
             // 执行命令
             try {
                 stopWatch.start();
-                dockerClient.execStartCmd(execId)
-                        .exec(execStartResultCallback)
-                        .awaitCompletion(TIME_OUT, TimeUnit.MICROSECONDS);
+                dockerClient.execStartCmd(execId).exec(execStartResultCallback).awaitCompletion(TIME_OUT, TimeUnit.MILLISECONDS);
                 stopWatch.stop();
                 time[0] = stopWatch.getLastTaskTimeMillis();
                 isOver[0] = true;
@@ -306,8 +318,6 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
             boolean del = FileUtil.del(userCodeParentPath);
             System.out.println("删除" + (del ? "成功" : "失败"));
         }
-
-
         return executeCodeResponse;
     }
 

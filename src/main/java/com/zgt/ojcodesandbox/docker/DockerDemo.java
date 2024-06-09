@@ -16,9 +16,14 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class DockerDemo {
+
+
 
     public static void main(String[] args) throws InterruptedException {
         // 获取默认的 Docker Client

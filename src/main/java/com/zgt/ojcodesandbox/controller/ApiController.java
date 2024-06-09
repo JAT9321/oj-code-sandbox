@@ -1,5 +1,6 @@
 package com.zgt.ojcodesandbox.controller;
 
+import com.zgt.ojcodesandbox.languageCodeSandbox.GTJavaDockerCodeSandbox;
 import com.zgt.ojcodesandbox.languageCodeSandbox.JavaNativeCodeSandbox;
 import com.zgt.ojcodesandbox.model.ExecuteCodeRequest;
 import com.zgt.ojcodesandbox.model.ExecuteCodeResponse;
@@ -11,6 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
 @RestController("/")
 public class ApiController {
@@ -20,6 +25,9 @@ public class ApiController {
     public static final String AUTH_REQUEST_SECRET = "TIAN";
     @Resource
     private JavaNativeCodeSandbox javaNativeCodeSandbox;
+
+    @Resource
+    private GTJavaDockerCodeSandbox gtJavaDockerCodeSandbox;
 
     /**
      * 对外提供接口
@@ -43,4 +51,6 @@ public class ApiController {
         }
         return javaNativeCodeSandbox.executeCode(executeCodeRequest);
     }
+
+
 }
