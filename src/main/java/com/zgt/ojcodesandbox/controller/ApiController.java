@@ -21,7 +21,6 @@ public class ApiController {
     public static final String AUTH_REQUEST_SECRET = "TIAN";
     @Resource
     private JavaNativeCodeSandbox javaNativeCodeSandbox;
-
     @Resource
     private GTJavaDockerCodeSandbox gtJavaDockerCodeSandbox;
 
