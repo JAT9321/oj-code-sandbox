@@ -5,10 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
 import com.github.dockerjava.core.DockerClientBuilder;
-import com.zgt.ojcodesandbox.languageCodeSandbox.CodeSandbox;
-import com.zgt.ojcodesandbox.languageCodeSandbox.JavaDockerCodeSandbox;
-import com.zgt.ojcodesandbox.languageCodeSandbox.JavaDockerCodeSandboxOld;
-import com.zgt.ojcodesandbox.languageCodeSandbox.JavaNativeCodeSandbox;
+import com.zgt.ojcodesandbox.languageCodeSandbox.*;
 import com.zgt.ojcodesandbox.model.ExecuteCodeRequest;
 import com.zgt.ojcodesandbox.model.ExecuteCodeResponse;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,7 +39,7 @@ public class Test {
 
     @GetMapping("/docker")
     public String docker() {
-        CodeSandbox CodeSandbox = new JavaDockerCodeSandboxOld();
+        JavaDockerCodeSandboxOld CodeSandbox = new JavaDockerCodeSandboxOld();
         // JavaNativeCodeSandbox javaNativeCodeSandbox = new JavaNativeCodeSandbox();
         ExecuteCodeRequest executeCodeRequest = new ExecuteCodeRequest();
         // executeCodeRequest.setInputList(Arrays.asList("4\\n1 2 3 4", "3\\n1 2 3"));

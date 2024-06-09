@@ -8,8 +8,13 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.command.*;
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.command.AttachContainerCmd;
+import com.github.dockerjava.api.command.ExecCreateCmdResponse;
+import com.github.dockerjava.api.command.StatsCmd;
+import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Frame;
+import com.github.dockerjava.api.model.Statistics;
+import com.github.dockerjava.api.model.StreamType;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.zgt.ojcodesandbox.model.ExceuteMessage;
@@ -35,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  * @since : 2024/5/25
  **/
 
-public class JavaDockerCodeSandboxOld implements CodeSandbox {
+public class JavaDockerCodeSandboxStud implements CodeSandbox {
 
     // 保存用户上传代码的临时目录
     private static final String GLOBAL_CODE_DIR_NAME = "tmpCode";
@@ -97,6 +102,12 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
         // 创建容器，上传编译过后的文件
         // 获取默认的 Docker Client
         DockerClient dockerClient = DockerClientBuilder.getInstance().build();
+        List<Container> containerList = dockerClient.listContainersCmd().exec();
+        for (Container container : containerList)
+            System.out.println(container.getId() + " " + Arrays.toString(container.getNames()));
+        AttachContainerCmd attachContainerCmd = dockerClient.attachContainerCmd("9ff7cfd719196351e227225b848d94c3de8d90ecc32861b8659c3bb3bd2a540b");
+
+        if (true) return null;
 
         // String image = "openjdk:8-alpine";
         // // 拉取镜像
@@ -119,7 +130,7 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
         //     }
         //     System.out.println("下载完成");
         // }
-
+        //
         // // 创建容器
         // CreateContainerCmd containerCmd = dockerClient.createContainerCmd(image);
         // // 镜像运行时的相关参数指定，卷映射，内存指定等
@@ -146,12 +157,13 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
         // System.out.println(createContainerResponse);
         // String containerId = createContainerResponse.getId();
 
-        // String containerId = "9268eeb2b0e15bca7e337dda8685652d6a9eb936f880340781befa1a1a7f644a";
-        String containerId = "8a01c44ae767bc86420a66a5c24647fa1639963b8d68481749f820b3aa673810";
+        String containerId = "9268eeb2b0e15bca7e337dda8685652d6a9eb936f880340781befa1a1a7f644a";
+        containerId = "9ff7cfd719196351e227225b848d94c3de8d90ecc32861b8659c3bb3bd2a540b";
 
         // 启动容器
-        // dockerClient.startContainerCmd(containerId).exec();
-        // System.out.println("容器启动完成");
+
+        dockerClient.startContainerCmd(containerId).exec();
+        System.out.println("容器启动完成");
 
 
         // 执行命令 => docker exec container_name java -cp /app Main 1 3
@@ -167,26 +179,15 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
             String[] inputArgsArray = inputArgs.split(" ");
             String[] cmdArray = ArrayUtil.append(new String[]{"java", "-cp", "/app/" + randomName, "Main"}, inputArgsArray);
 
-            // 创建命令 java命令
-            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
-                    .withCmd(cmdArray)
-                    .withAttachStdin(true)
-                    .withAttachStdout(true)
-                    .withAttachStderr(true)
-                    .exec();
+            // 创建命令
+            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId).withCmd(cmdArray).withAttachStdin(true).withAttachStdout(true).withAttachStderr(true).exec();
             System.out.println("创建执行命令：" + execCreateCmdResponse);
-            ExecCreateCmdResponse argsResponse = dockerClient.execCreateCmd(containerId)
-                    .withCmd(inputArgs)
-                    .withAttachStdin(true)
-                    .withAttachStdout(true)
-                    .withAttachStderr(true)
-                    .exec();
-            System.out.println("创建参数命令：" + execCreateCmdResponse);
+
             // 直接结果返回
             ExceuteMessage exceuteMessage = new ExceuteMessage();
             // java的执行要求，在匿名内部类或者lambna表达式中的外部变量的引用不能变，所以设置为数组形式
-            final String[] message = {""};
-            final String[] errorMessage = {""};
+            final String[] message = {null};
+            final String[] errorMessage = {null};
             final Long[] time = {0L};
 
             // 超时判定
@@ -194,7 +195,6 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
 
             // 命令id，执行命令穿这个id，
             String execId = execCreateCmdResponse.getId();
-            String argsId = argsResponse.getId();
             // 执行回调
             ExecStartResultCallback execStartResultCallback = new ExecStartResultCallback() {
                 @Override
@@ -205,10 +205,8 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
                         errorMessage[0] = new String(frame.getPayload());
                         System.out.println("输出错误结果：" + errorMessage[0]);
                     } else {
-                        byte[] payload = frame.getPayload();
-                        // System.out.println(new String(payload));
-                        message[0] += new String(payload);
-                        // System.out.println("输出结果：" + message[0]);
+                        message[0] = new String(frame.getPayload());
+                        System.out.println("输出结果：" + message[0]);
                     }
                     super.onNext(frame);
                 }
@@ -232,9 +230,7 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
                     Long usage = statistics.getMemoryStats().getUsage();
                     maxMemory[0] = Math.max(usage == null ? 0 : usage, maxMemory[0]);
                     System.out.println("内存占用：" + maxMemory[0]);
-                    if (isOver[0]) {
-                        Thread.currentThread().stop();
-                    }
+                    if (isOver[0]) return;
                 }
 
                 @Override
@@ -254,10 +250,11 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
                 }
             };
             statsCmd.exec(statisticsResultCallback);
+
             // 执行命令
             try {
                 stopWatch.start();
-                dockerClient.execStartCmd(execId).exec(execStartResultCallback).awaitCompletion(TIME_OUT, TimeUnit.MILLISECONDS);
+                dockerClient.execStartCmd(execId).exec(execStartResultCallback).awaitCompletion(TIME_OUT, TimeUnit.MICROSECONDS);
                 stopWatch.stop();
                 time[0] = stopWatch.getLastTaskTimeMillis();
                 isOver[0] = true;
