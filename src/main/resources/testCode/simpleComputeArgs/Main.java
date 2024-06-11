@@ -13,10 +13,17 @@ class Main {
         String nums = scanner.nextLine();
         List<Integer> numsList = Arrays.stream(nums.split(" ")).map(Integer::valueOf).collect(Collectors.toList());
         sum = numsList.stream().reduce(Integer::sum).get();
-        for (Integer integer : numsList) {
-            System.out.printf(integer + " ");
-        }
-        System.out.println();
-        System.out.println(sum);
+        // for (Integer integer : numsList) {
+        //     System.out.printf(integer + " ");
+        // }
+        // System.out.println();
+        // System.out.println(sum);
+        List<List<Integer>> ans = new ArrayList<>();
+        ArrayList<Integer> arrayList = new ArrayList<>();
+        arrayList.add(1);
+        arrayList.add(2);
+        ans.add(arrayList);
+        ans.add(arrayList);
+        System.out.println(ans);
     }
 }

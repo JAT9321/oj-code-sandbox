@@ -111,6 +111,8 @@ public class GTJavaDockerCodeSandbox implements CodeSandbox {
             // 输入命令
             // docker exec -it 8a0 /bin/sh /app/test/run.sh
             String[] cmdArray = new String[]{"/bin/sh", "/app/run.sh", randomName};
+            // 测试数据保存到数据库\n会变成\\n，这里先替换掉这种方式
+            inputArgs = inputArgs.replace("\\n", "\n");
             // 创建输入文件 覆盖模式
             File testInputFile = FileUtil.writeString(inputArgs, testInputFilePath, StandardCharsets.UTF_8);
             System.out.println("测试用例路径：" + testInputFile.getAbsolutePath());
@@ -205,6 +207,11 @@ public class GTJavaDockerCodeSandbox implements CodeSandbox {
             } finally {
             }
             // 保存执行输出结果
+            // 因为是ACM格式，我们得到用户的输出是通过System.out.println(answer) 这样会多出一个换行符，我们要把这个换行符拿掉
+            int lastIndexOf = message[0].lastIndexOf("\n");
+            if (lastIndexOf != -1) {
+                message[0] = message[0].substring(0, lastIndexOf);
+            }
             exceuteMessage.setMessage(message[0]);
             exceuteMessage.setErrorMessage(errorMessage[0]);
             // 超时判断， 如果timedOut[0]为真说明没有完成判题（返回-1），为假完成判题，
