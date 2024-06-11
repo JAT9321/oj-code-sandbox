@@ -222,6 +222,7 @@ public class GTJavaDockerCodeSandbox implements CodeSandbox {
         }
         // 收集需要的输出响应数据
         ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
+        executeCodeResponse.setMessage("=== Accepted ===");
         ArrayList<String> outputList = new ArrayList<>();
         // 最大用时
         long maxTime = 0;
