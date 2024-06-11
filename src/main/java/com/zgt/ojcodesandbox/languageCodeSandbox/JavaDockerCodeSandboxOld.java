@@ -41,6 +41,8 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
     private static final String GLOBAL_CODE_DIR_NAME = "tmpCode";
     // 固定java代码的类名
     private static final String GLOBAL_JAVA_CLASS_NAME = "Main.java";
+    // 输入文件名称
+    private static final String GLOBAL_INPUT_ARGS_NAME = "input.txt";
     // 超时时间
     private static final long TIME_OUT = 5000L;
     // 是否拉取过镜像了
@@ -83,6 +85,8 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
         String userCodeParentPath = globalCodePathName + File.separator + randomName;
         String userCodePath = userCodeParentPath + File.separator + GLOBAL_JAVA_CLASS_NAME;
         File userCodeFile = FileUtil.writeString(code, userCodePath, StandardCharsets.UTF_8);
+        String testInputFilePath = userCodeParentPath + File.separator + GLOBAL_INPUT_ARGS_NAME;
+
 
         // 编译代码 得到class文件
         String compileCmd = String.format("javac -encoding utf-8 %s", userCodeFile.getAbsolutePath());
@@ -164,9 +168,11 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
         for (String inputArgs : inputList) {
 
             // 输入命令
-            String[] inputArgsArray = inputArgs.split(" ");
-            String[] cmdArray = ArrayUtil.append(new String[]{"java", "-cp", "/app/" + randomName, "Main"}, inputArgsArray);
-
+            // docker exec -it 8a0 /bin/sh /app/test/run.sh
+            String[] cmdArray = new String[]{"/bin/sh", "/app/run.sh", randomName};
+            // 创建输入文件 覆盖模式
+            File testInputFile = FileUtil.writeString(inputArgs, testInputFilePath, StandardCharsets.UTF_8);
+            System.out.println("测试用例路径：" + testInputFile.getAbsolutePath());
             // 创建命令 java命令
             ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
                     .withCmd(cmdArray)
@@ -175,13 +181,7 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
                     .withAttachStderr(true)
                     .exec();
             System.out.println("创建执行命令：" + execCreateCmdResponse);
-            ExecCreateCmdResponse argsResponse = dockerClient.execCreateCmd(containerId)
-                    .withCmd(inputArgs)
-                    .withAttachStdin(true)
-                    .withAttachStdout(true)
-                    .withAttachStderr(true)
-                    .exec();
-            System.out.println("创建参数命令：" + execCreateCmdResponse);
+
             // 直接结果返回
             ExceuteMessage exceuteMessage = new ExceuteMessage();
             // java的执行要求，在匿名内部类或者lambna表达式中的外部变量的引用不能变，所以设置为数组形式
@@ -194,7 +194,6 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
 
             // 命令id，执行命令穿这个id，
             String execId = execCreateCmdResponse.getId();
-            String argsId = argsResponse.getId();
             // 执行回调
             ExecStartResultCallback execStartResultCallback = new ExecStartResultCallback() {
                 @Override
@@ -319,8 +318,6 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
             boolean del = FileUtil.del(userCodeParentPath);
             System.out.println("删除" + (del ? "成功" : "失败"));
         }
-
-
         return executeCodeResponse;
     }
 

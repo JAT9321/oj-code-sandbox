@@ -39,11 +39,11 @@ public class Test {
 
     @GetMapping("/docker")
     public String docker() {
-        JavaDockerCodeSandboxOld CodeSandbox = new JavaDockerCodeSandboxOld();
+        CodeSandbox CodeSandbox = new GTJavaDockerCodeSandbox();
         // JavaNativeCodeSandbox javaNativeCodeSandbox = new JavaNativeCodeSandbox();
         ExecuteCodeRequest executeCodeRequest = new ExecuteCodeRequest();
-        // executeCodeRequest.setInputList(Arrays.asList("4\\n1 2 3 4", "3\\n1 2 3"));
-        executeCodeRequest.setInputList(Arrays.asList("4", "3"));
+        executeCodeRequest.setInputList(Arrays.asList("4\n1 2 3 4", "3\n1 2 3"));
+        // executeCodeRequest.setInputList(Arrays.asList("4", "3"));
         String code = ResourceUtil.readStr("testCode/simpleComputeArgs/Main.java", StandardCharsets.UTF_8);
         executeCodeRequest.setCode(code);
         executeCodeRequest.setLanguage("java");

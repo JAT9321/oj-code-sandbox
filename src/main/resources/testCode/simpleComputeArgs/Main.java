@@ -1,10 +1,22 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
 class Main {
     public static void main(String[] args) {
-        System.out.println(3 + 10);
         Scanner scanner = new Scanner(System.in);
-        System.out.println(scanner.nextInt());
-        // System.out.println(5 + 10);
+        int n = scanner.nextInt();
+        scanner.nextLine();
+        int sum = 0;
+        // for (int i = 0; i < n; i++) {
+        //     sum += scanner.nextInt();
+        // }
+        String nums = scanner.nextLine();
+        List<Integer> numsList = Arrays.stream(nums.split(" ")).map(Integer::valueOf).collect(Collectors.toList());
+        sum = numsList.stream().reduce(Integer::sum).get();
+        for (Integer integer : numsList) {
+            System.out.printf(integer + " ");
+        }
+        System.out.println();
+        System.out.println(sum);
     }
 }

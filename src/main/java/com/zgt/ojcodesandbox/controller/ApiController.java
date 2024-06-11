@@ -1,5 +1,6 @@
 package com.zgt.ojcodesandbox.controller;
 
+import com.zgt.ojcodesandbox.languageCodeSandbox.GTJavaDockerCodeSandbox;
 import com.zgt.ojcodesandbox.languageCodeSandbox.JavaNativeCodeSandbox;
 import com.zgt.ojcodesandbox.model.ExecuteCodeRequest;
 import com.zgt.ojcodesandbox.model.ExecuteCodeResponse;
@@ -20,6 +21,8 @@ public class ApiController {
     public static final String AUTH_REQUEST_SECRET = "TIAN";
     @Resource
     private JavaNativeCodeSandbox javaNativeCodeSandbox;
+    @Resource
+    private GTJavaDockerCodeSandbox gtJavaDockerCodeSandbox;
 
     /**
      * 对外提供接口
@@ -41,6 +44,6 @@ public class ApiController {
         if (executeCodeRequest == null) {
             throw new RuntimeException("请求参数为空");
         }
-        return javaNativeCodeSandbox.executeCode(executeCodeRequest);
+        return gtJavaDockerCodeSandbox.executeCode(executeCodeRequest);
     }
 }
