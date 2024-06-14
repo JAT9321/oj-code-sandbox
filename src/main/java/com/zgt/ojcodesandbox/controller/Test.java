@@ -5,14 +5,18 @@ import cn.hutool.json.JSONUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
 import com.github.dockerjava.core.DockerClientBuilder;
+import com.zgt.ojcodesandbox.Service.DockerService;
 import com.zgt.ojcodesandbox.languageCodeSandbox.*;
+import com.zgt.ojcodesandbox.model.DockerInfo;
 import com.zgt.ojcodesandbox.model.ExecuteCodeRequest;
 import com.zgt.ojcodesandbox.model.ExecuteCodeResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author : JAT
@@ -23,6 +27,18 @@ import java.util.Arrays;
 
 @RestController
 public class Test {
+
+
+    @Resource
+    private DockerService dockerService;
+
+
+    @GetMapping("/dk")
+    public String dk() {
+        String image = "openjdk:8-alpine";
+        List<DockerInfo> dockerInfoList = dockerService.getDockerInfo(image);
+        return JSONUtil.toJsonStr(dockerInfoList);
+    }
 
     @GetMapping("/hello")
     public String hello() {
@@ -52,6 +68,5 @@ public class Test {
         System.out.println(executeCodeResponse);
         return JSONUtil.toJsonStr(executeCodeResponse);
     }
-
 
 }
