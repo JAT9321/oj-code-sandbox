@@ -17,4 +17,6 @@ public class DockerInfo {
     String state;
     // 镜像
     String ImageName;
+    // 最后调用的时间戳
+    long lastExecTime;
 }

@@ -15,5 +15,5 @@ public interface CodeSandbox {
      * @param executeCodeRequest
      * @return
      */
-    ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest);
+    public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest);
 }

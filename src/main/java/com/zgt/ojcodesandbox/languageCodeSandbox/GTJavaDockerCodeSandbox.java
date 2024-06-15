@@ -4,7 +4,6 @@ package com.zgt.ojcodesandbox.languageCodeSandbox;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.lang.UUID;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -12,14 +11,19 @@ import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
+import com.zgt.ojcodesandbox.service.DockerService;
+import com.zgt.ojcodesandbox.service.impl.DockerServiceImpl;
 import com.zgt.ojcodesandbox.model.ExceuteMessage;
 import com.zgt.ojcodesandbox.model.ExecuteCodeRequest;
 import com.zgt.ojcodesandbox.model.ExecuteCodeResponse;
 import com.zgt.ojcodesandbox.model.JudgeInfo;
 import com.zgt.ojcodesandbox.utils.ProcessUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import javax.annotation.Resource;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -47,25 +51,28 @@ public class GTJavaDockerCodeSandbox implements CodeSandbox {
     private static final String GLOBAL_INPUT_ARGS_NAME = "input.txt";
     // 超时时间
     private static final long TIME_OUT = 5000L;
-    // 是否拉取过镜像了
-    private static final boolean FIRST_INIT = false;
+
+    @Resource
+    private DockerService dockerService;
+
+    @Resource
+    private JavaNativeCodeSandbox javaNativeCodeSandbox;
 
 
-    public static void main(String[] args) {
-        JavaNativeCodeSandboxOld javaNativeCodeSandbox = new JavaNativeCodeSandboxOld();
-        ExecuteCodeRequest executeCodeRequest = new ExecuteCodeRequest();
-        executeCodeRequest.setInputList(Arrays.asList("1 2", "1 3"));
-        //  String code = ResourceUtil.readStr("testCode/simpleComputeArgs/Main.java", StandardCharsets.UTF_8);
-        //  String code = ResourceUtil.readStr("testCode/unsafe/SleepError.java", StandardCharsets.UTF_8);
-        String code = ResourceUtil.readStr("testCode/unsafe/RunFileError.java", StandardCharsets.UTF_8);
-        executeCodeRequest.setCode(code);
-        executeCodeRequest.setLanguage("java");
-        ExecuteCodeResponse executeCodeResponse = javaNativeCodeSandbox.executeCode(executeCodeRequest);
-        System.out.println(executeCodeResponse);
-    }
+    // 获取默认的 Docker Client
+    @Resource
+    DockerClient dockerClient;
+
 
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
+        System.out.println(dockerService + "===================");
+        String containerId = dockerService.getContainerIdByLRU();
+        System.out.println("containerId ：" + containerId);
+        if (containerId == null) {//代表当前没有可用的容器存在，调用JavaNativeCodeSandbox执行代码
+            System.out.println("无可用容器，调用了javaNativeCodeSandbox执行代码");
+            return javaNativeCodeSandbox.executeCode(executeCodeRequest);
+        }
 
         List<String> inputList = executeCodeRequest.getInputList();
         String code = executeCodeRequest.getCode();
@@ -96,11 +103,8 @@ public class GTJavaDockerCodeSandbox implements CodeSandbox {
         } catch (IOException e) {
             return getErrorResponse(e);
         }
-        // 创建容器，上传编译过后的文件
-        // 获取默认的 Docker Client
-        DockerClient dockerClient = DockerClientBuilder.getInstance().build();
 
-        String containerId = "8a01c44ae767bc86420a66a5c24647fa1639963b8d68481749f820b3aa673810";
+        // String containerId = "8a01c44ae767bc86420a66a5c24647fa1639963b8d68481749f820b3aa673810";
 
         // 存放执行结果
         List<ExceuteMessage> executeMessageList = new ArrayList<>();

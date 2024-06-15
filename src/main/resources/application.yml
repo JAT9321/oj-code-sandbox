@@ -1,3 +1,9 @@
 server:
-    port: 2376
-
+  port: 2376
+spring:
+  redis:
+    database: 0
+    host: 121.37.154.99
+    port: 6379
+    timeout: 5000
+    password: zgt123

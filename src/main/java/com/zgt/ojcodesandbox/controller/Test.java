@@ -5,7 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
 import com.github.dockerjava.core.DockerClientBuilder;
-import com.zgt.ojcodesandbox.Service.DockerService;
+import com.zgt.ojcodesandbox.service.DockerService;
 import com.zgt.ojcodesandbox.languageCodeSandbox.*;
 import com.zgt.ojcodesandbox.model.DockerInfo;
 import com.zgt.ojcodesandbox.model.ExecuteCodeRequest;
@@ -28,22 +28,30 @@ import java.util.List;
 @RestController
 public class Test {
 
-
     @Resource
     private DockerService dockerService;
 
+    @Resource
+    private GTJavaDockerCodeSandbox gtJavaDockerCodeSandbox;
+
+    @Resource
+    DockerClient dockerClient;
 
     @GetMapping("/dk")
     public String dk() {
         String image = "openjdk:8-alpine";
+        // DockerInfo dockerInfo = dockerService.createDockerContainer(image);
+        // System.out.println("新建容器：" + dockerInfo.toString());
         List<DockerInfo> dockerInfoList = dockerService.getDockerInfo(image);
+        DockerInfo delInfo = new DockerInfo();
+        // delInfo.setContainerId("20b55fd646eb284654fc269145a69610a6c64ef6bbae0e45aa5e7d5db7ca427a");
+        // dockerService.deleteDockerContainer(delInfo);
+        // System.out.println("删除成功");
         return JSONUtil.toJsonStr(dockerInfoList);
     }
 
     @GetMapping("/hello")
     public String hello() {
-        DockerClient dockerClient = DockerClientBuilder.getInstance().build();
-
         // docker环境信息
         Info info = dockerClient.infoCmd().exec();
         String infoStr = JSONUtil.toJsonStr(info);
@@ -55,7 +63,7 @@ public class Test {
 
     @GetMapping("/docker")
     public String docker() {
-        CodeSandbox CodeSandbox = new GTJavaDockerCodeSandbox();
+        // CodeSandbox CodeSandbox = new GTJavaDockerCodeSandbox();
         // JavaNativeCodeSandbox javaNativeCodeSandbox = new JavaNativeCodeSandbox();
         ExecuteCodeRequest executeCodeRequest = new ExecuteCodeRequest();
         executeCodeRequest.setInputList(Arrays.asList("4\n1 2 3 4", "3\n1 2 3"));
@@ -64,7 +72,7 @@ public class Test {
         executeCodeRequest.setCode(code);
         executeCodeRequest.setLanguage("java");
         // ExecuteCodeResponse executeCodeResponse = javaNativeCodeSandbox.executeCode(executeCodeRequest);
-        ExecuteCodeResponse executeCodeResponse = CodeSandbox.executeCode(executeCodeRequest);
+        ExecuteCodeResponse executeCodeResponse = gtJavaDockerCodeSandbox.executeCode(executeCodeRequest);
         System.out.println(executeCodeResponse);
         return JSONUtil.toJsonStr(executeCodeResponse);
     }
